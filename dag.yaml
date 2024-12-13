@@ -1,0 +1,36 @@
+id: 123 #仅创建后/查询时返回，修改时需要
+name: "dag name"
+parallel: number
+resource:
+  cluster: xx.com
+  namespace: ns
+before_run:
+  - xxx
+after_run:
+  - xxx
+
+stages:
+  - start
+  - test
+  - build
+  - deploy
+
+variables:
+  - key1: value1
+
+jobs:
+  - id: 11 #仅创建后/查询时返回，修改时需要
+    name: xxx
+    stage: start
+    resource:
+      cluster: xx.com
+      namespace: ns
+    envs:
+      - key1: val1
+    image: xxx # k8s类型
+    before_run:
+      - xxx
+    run:
+      - xxx
+    after_run:
+      - xxx
