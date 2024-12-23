@@ -4,8 +4,9 @@ import (
 	"github.com/agclqq/prow-framework/validator"
 	"github.com/agclqq/prow-pipeline/app/http/controller/response"
 	"github.com/agclqq/prow-pipeline/boot"
-	"github.com/agclqq/prow-pipeline/domain/flow/agg/ev"
+	"github.com/agclqq/prow-pipeline/domain/flow/entity"
 	"github.com/agclqq/prow-pipeline/domain/flow/svr"
+	"github.com/agclqq/prow-pipeline/domain/flow/vo"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -14,13 +15,13 @@ type ConfFlow struct {
 }
 
 func (f ConfFlow) Index(ctx *gin.Context) {
-	var vld ev.VldFlowIndex
+	var vld vo.VldFlowIndex
 	err := ctx.ShouldBind(&vld)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Failure(ctx, response.INVALID_PARAMETER, validator.GetError(err).Error()))
 		return
 	}
-	where := &ev.ConfFlow{
+	where := &entity.ConfFlow{
 		ID:       vld.Id,
 		FlowId:   vld.FlowId,
 		Version:  vld.Version,
@@ -37,7 +38,7 @@ func (f ConfFlow) Show(ctx *gin.Context) {
 
 }
 func (f ConfFlow) Store(ctx *gin.Context) {
-	var vld ev.VldFlowPost
+	var vld vo.VldFlowPost
 	err := ctx.ShouldBind(&vld)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Failure(ctx, response.INVALID_PARAMETER, validator.GetError(err).Error()))
@@ -52,13 +53,13 @@ func (f ConfFlow) Store(ctx *gin.Context) {
 		tx.Commit()
 	}()
 	fs := svr.NewFlowSvrImpl(tx)
-	flowIdData := &ev.ConfFlowId{}
+	flowIdData := &entity.ConfFlowId{}
 	err = fs.CreateFlowId(ctx, flowIdData)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.Failure(ctx, response.SERVER_ERROR, err.Error()))
 		return
 	}
-	flowData := &ev.ConfFlow{
+	flowData := &entity.ConfFlow{
 		FlowId:           flowIdData.ID,
 		Name:             vld.Name,
 		ParallelNum:      vld.ParallelNum,
@@ -77,23 +78,34 @@ func (f ConfFlow) Store(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response.Success(ctx, flowData.ID))
 }
 func (f ConfFlow) Update(ctx *gin.Context) {
-	var vld ev.VldFlowUpdate
-	err := ctx.ShouldBind(&vld)
-	if err != nil {
+	var vldId vo.VldFlowUpdateFlowId
+	if err := ctx.ShouldBindUri(&vldId); err != nil {
+		ctx.JSON(http.StatusBadRequest, response.Failure(ctx, response.INVALID_PARAMETER, err.Error()))
+		return
+	}
+	var vld vo.VldFlowUpdate
+	if err := ctx.ShouldBind(&vld); err != nil {
 		ctx.JSON(http.StatusBadRequest, response.Failure(ctx, response.INVALID_PARAMETER, validator.GetError(err).Error()))
 		return
 	}
-	data := &ev.ConfFlow{
-		Name:             vld.Name,
-		ParallelNum:      vld.ParallelNum,
-		ParallelStrategy: vld.ParallelStrategy,
-		ResourceId:       vld.ResourceId,
-		ResourceConf:     vld.ResourceConf,
-		BeforeRun:        vld.BeforeRun,
-		AfterRun:         vld.AfterRun,
-		Modifier:         vld.Modifier,
+	fsSvr := svr.NewFlowSvrImpl()
+	flow, err := fsSvr.VerifyV0Flow(ctx, vldId.FlowId)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, response.Failure(ctx, response.SERVER_ERROR, err.Error()))
+		return
 	}
-	_, err = svr.NewFlowSvrImpl().UpdateFlow(ctx, &ev.ConfFlow{ID: vld.Id, FlowId: vld.FlowId}, data)
+
+	data := map[string]any{
+		"name":              vld.Name,
+		"parallel_num":      vld.ParallelNum,
+		"parallel_strategy": vld.ParallelStrategy,
+		"resource_id":       vld.ResourceId,
+		"resource_conf":     vld.ResourceConf,
+		"before_run":        vld.BeforeRun,
+		"after_run":         vld.AfterRun,
+		"modifier":          vld.Modifier,
+	}
+	_, err = svr.NewFlowSvrImpl().UpdateFlow(ctx, &entity.ConfFlow{ID: flow.ID}, data)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, response.Failure(ctx, response.SERVER_ERROR, err.Error()))
 		return

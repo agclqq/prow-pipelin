@@ -2,7 +2,7 @@ package controller
 
 import (
 	"github.com/agclqq/prow-pipeline/app/http/controller/response"
-	"github.com/agclqq/prow-pipeline/domain/flow/agg/ev"
+	"github.com/agclqq/prow-pipeline/domain/flow/entity"
 	"github.com/agclqq/prow-pipeline/domain/flow/svr"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -18,7 +18,7 @@ func (c ConfFlowId) Show(ctx *gin.Context) {
 
 }
 func (c ConfFlowId) Store(ctx *gin.Context) {
-	data := &ev.ConfFlowId{}
+	data := &entity.ConfFlowId{}
 	err := svr.NewFlowSvrImpl().CreateFlowId(ctx, data)
 	if err != nil {
 		ctx.JSON(http.StatusOK, response.Failure(ctx, response.SERVER_ERROR, err.Error()))

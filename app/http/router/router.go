@@ -13,5 +13,8 @@ func Register(eng *gin.Engine) {
 		router.ApiResource(apiGroup, "/demo", &controller.Demo{})
 		router.ApiResource(apiGroup, "/flowId", &controller.ConfFlowId{}, router.STORE)
 		router.ApiResource(apiGroup, "/flow", &controller.ConfFlow{})
+		router.ApiResource(apiGroup, "/flow/:flow/stage", controller.ConfFlowStage{})
+		router.ApiResource(apiGroup, "/flow/:flow/atom", controller.ConfFlowAtom{})
+		router.ApiResource(apiGroup, "/flow/:flow/dag", controller.ConfFlowDag{})
 	}
 }

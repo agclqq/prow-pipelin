@@ -1,17 +1,17 @@
 package agg
 
 import (
-	"github.com/agclqq/prow-pipeline/domain/flow/agg/ev"
+	"github.com/agclqq/prow-pipeline/domain/flow/entity"
 )
 
 type AggConfFlowId interface {
 }
 type AggConfFlowIdImpl struct {
-	entity *ev.ConfFlowId
+	entity *entity.ConfFlowId
 }
 
 var _ AggConfFlowId = (*AggConfFlowIdImpl)(nil)
 
-func NewAggConfFlowId(entity *ev.ConfFlowId) AggConfFlowId {
+func NewAggConfFlowId(entity *entity.ConfFlowId) AggConfFlowId {
 	return &AggConfFlowIdImpl{entity: entity}
 }
