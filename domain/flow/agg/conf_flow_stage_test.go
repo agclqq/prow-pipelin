@@ -116,3 +116,5 @@ func TestConfFlowStageImpl_MoveRearrange(t *testing.T) {
 				return
 			}
 		})
+	}
+}
